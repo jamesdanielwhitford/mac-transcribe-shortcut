@@ -97,11 +97,11 @@ def on_press(key):
     ctrl = keyboard.Key.ctrl
     alt = keyboard.Key.alt
     try:
-        v = keyboard.KeyCode.from_char('v')
+        c = keyboard.KeyCode.from_char('c')
     except Exception:
         return
 
-    if ctrl in pressed_keys and alt in pressed_keys and v in pressed_keys:
+    if ctrl in pressed_keys and alt in pressed_keys and c in pressed_keys:
         with recording_lock:
             if recording_process is None:
                 start_recording()
@@ -113,7 +113,7 @@ def on_release(key):
     pressed_keys.discard(key)
 
 
-print("Voice transcribe running. Press Ctrl+Option+V to toggle recording. Ctrl+C to quit.")
+print("Voice transcribe running. Press Ctrl+Option+C to toggle recording. Ctrl+C to quit.")
 
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
     listener.join()

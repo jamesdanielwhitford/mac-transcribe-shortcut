@@ -2,7 +2,7 @@
 
 A macOS global keyboard shortcut that records your voice, transcribes it using Mistral's Voxtral model, and copies the result to your clipboard.
 
-**Ctrl+Option+V** to start recording. Press again to stop and transcribe.
+**Ctrl+Option+C** to start recording. Press again to stop and transcribe.
 
 ## Requirements
 
