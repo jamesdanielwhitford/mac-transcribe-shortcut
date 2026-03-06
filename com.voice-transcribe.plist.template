@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.voice-transcribe</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>SCRIPT_PATH</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>MISTRAL_API_KEY</key>
+        <string>YOUR_API_KEY_HERE</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>LOG_PATH</string>
+    <key>StandardErrorPath</key>
+    <string>LOG_PATH</string>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+</dict>
+</plist>
