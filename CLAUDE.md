@@ -4,7 +4,7 @@ A macOS background tool that records voice on a global hotkey and transcribes it
 
 ## Shortcut
 
-**Ctrl+Option+V** - toggle recording on/off
+**Ctrl+Option+C** - toggle recording on/off
 
 ## Key files
 
@@ -25,7 +25,7 @@ A macOS background tool that records voice on a global hotkey and transcribes it
 2. Run `./setup.sh` - this installs sox, Python deps, asks for their API key, and loads the launch agent.
 3. They MUST grant Accessibility and Microphone permissions to Terminal in System Settings > Privacy & Security.
 4. Have them run `python3 voice-transcribe.py` directly in a terminal once - this is what triggers the macOS permission prompts.
-5. Once Ctrl+Option+V works in the terminal session, close it. The background agent handles it from then on.
+5. Once Ctrl+Option+C works in the terminal session, close it. The background agent handles it from then on.
 
 ## Common problems
 

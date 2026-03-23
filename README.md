@@ -39,7 +39,7 @@ Then run this once in a terminal to let macOS prompt you:
 python3 voice-transcribe.py
 ```
 
-Press **Ctrl+Option+V** to confirm it works, then close the terminal. The background agent will take over.
+Press **Ctrl+Option+C** to confirm it works, then close the terminal. The background agent will take over.
 
 ## Managing the background process
 
@@ -56,7 +56,7 @@ tail -f ~/voice-transcribe.log
 
 ## How it works
 
-- **pynput** listens globally for Ctrl+Option+V
+- **pynput** listens globally for Ctrl+Option+C
 - **sox** records audio from your default microphone at 16kHz
 - The audio is sent to Mistral's `/v1/audio/transcriptions` endpoint using the `voxtral-mini-latest` model
 - The transcribed text is copied to your clipboard via `pbcopy`
