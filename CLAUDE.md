@@ -52,3 +52,53 @@ launchctl list | grep voice-transcribe
 # View logs
 tail -f ~/voice-transcribe.log
 ```
+
+---
+
+## TTS Clipboard (Ctrl+Option+V)
+
+Reads clipboard text aloud using Google Cloud TTS (WaveNet/Neural2) and saves an MP3 to the Desktop.
+
+### Key files
+
+- `tts-clipboard.py` - TTS script, reads `GOOGLE_APPLICATION_CREDENTIALS` from environment
+- `com.tts-clipboard.plist.template` - launch agent template (populated by setup-tts.sh)
+- `setup-tts.sh` - one-command setup for the TTS feature
+- `~/Library/LaunchAgents/com.tts-clipboard.plist` - the live launch agent (not in repo)
+- `~/tts-clipboard.log` - runtime log
+
+### Voice
+
+Default voice is `en-US-Wavenet-F` (female WaveNet). Change `VOICE_NAME` in `tts-clipboard.py` to any WaveNet or Neural2 voice. WaveNet has a 4M char/month free tier ($4/1M after); Neural2 has 1M free ($16/1M after). Stick with WaveNet unless quality is a concern.
+
+### Google Cloud setup (for new users)
+
+1. Create a project at console.cloud.google.com, enable the **Text-to-Speech API**.
+2. Go to **IAM & Admin > Service Accounts**, create a service account, assign **Basic > Editor** role.
+3. Under the service account **Keys** tab, create a JSON key and download it.
+4. Move the JSON to `~/.config/gcloud/tts-service-account.json` (outside any repo).
+5. Set a budget alert in **Billing > Budgets & alerts** (e.g. $1/month) and optionally cap **APIs & Services > Text-to-Speech API > Quotas** to ~10,000 chars/day.
+
+### Setup
+
+1. Run `./setup-tts.sh` and provide the path to the service account JSON.
+2. Grant Accessibility permission to Terminal in System Settings > Privacy & Security.
+3. Run `GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/tts-service-account.json python3 tts-clipboard.py` directly once to trigger permission prompts.
+4. Copy text to clipboard and press Ctrl+Option+V to test.
+
+### Output
+
+MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and played immediately via `afplay`.
+
+### Managing the TTS agent
+
+```bash
+# Stop
+launchctl unload ~/Library/LaunchAgents/com.tts-clipboard.plist
+
+# Start
+launchctl load ~/Library/LaunchAgents/com.tts-clipboard.plist
+
+# View logs
+tail -f ~/tts-clipboard.log
+```
