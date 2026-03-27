@@ -17,6 +17,14 @@ if ! command -v brew &>/dev/null; then
     exit 1
 fi
 
+# Install ffmpeg
+if ! command -v ffmpeg &>/dev/null; then
+    echo "Installing ffmpeg..."
+    brew install ffmpeg
+else
+    echo "ffmpeg already installed."
+fi
+
 # Install Python dependencies
 echo "Installing Python dependencies..."
 pip3 install pynput google-cloud-texttospeech

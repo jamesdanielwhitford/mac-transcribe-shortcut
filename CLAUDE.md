@@ -79,6 +79,10 @@ Default voice is `en-US-Wavenet-F` (female WaveNet). Change `VOICE_NAME` in `tts
 4. Move the JSON to `~/.config/gcloud/tts-service-account.json` (outside any repo).
 5. Set a budget alert in **Billing > Budgets & alerts** (e.g. $1/month) and optionally cap **APIs & Services > Text-to-Speech API > Quotas** to ~10,000 chars/day.
 
+### Dependencies
+
+- `ffmpeg` must be installed (`brew install ffmpeg`) for stitching long texts into a single MP3.
+
 ### Setup
 
 1. Run `./setup-tts.sh` and provide the path to the service account JSON.

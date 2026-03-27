@@ -81,6 +81,8 @@ Reads whatever text is in your clipboard aloud using Google Cloud TTS (WaveNet).
 
 - macOS
 - Python 3
+- [Homebrew](https://brew.sh)
+- `ffmpeg` (`brew install ffmpeg`) — used to stitch audio chunks for long texts
 - A Google Cloud account with the Text-to-Speech API enabled
 
 ### Google Cloud setup
