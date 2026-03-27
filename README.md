@@ -75,7 +75,7 @@ tail -f ~/voice-transcribe.log
 
 ## Tool 2: TTS Clipboard Reader (Ctrl+Option+V)
 
-Reads whatever text is in your clipboard aloud using Google Cloud TTS (WaveNet). The audio is played immediately and saved as an MP3 to `~/Desktop/TTS Recordings/` for future playback.
+Reads whatever text is in your clipboard aloud using Google Cloud TTS (WaveNet). The audio is saved as an MP3 to `~/Desktop/TTS Recordings/` and opened in QuickTime Player — use its controls to pause or stop playback.
 
 ### Requirements
 

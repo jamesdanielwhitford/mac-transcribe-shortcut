@@ -92,7 +92,7 @@ Default voice is `en-US-Wavenet-F` (female WaveNet). Change `VOICE_NAME` in `tts
 
 ### Output
 
-MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and played immediately via `afplay`.
+MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and opened in QuickTime Player. Use QuickTime's controls to pause or stop, or close the window to cancel.
 
 ### Managing the TTS agent
 

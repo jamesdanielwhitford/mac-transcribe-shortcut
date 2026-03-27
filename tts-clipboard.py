@@ -162,7 +162,7 @@ def speak_clipboard():
             os.rmdir(tmp_dir)
 
         print(f"Saved to {output_path}")
-        subprocess.Popen(["afplay", output_path])
+        subprocess.Popen(["open", "-a", "QuickTime Player", output_path])
         notify("TTS Clipboard", f"Saved to Desktop: tts_{timestamp}.mp3")
 
     except Exception as e:
