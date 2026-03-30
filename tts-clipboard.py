@@ -142,18 +142,19 @@ def speak_clipboard():
                 for path in chunk_files:
                     f.write(f"file '{path}'\n")
 
-            subprocess.run(
+            result = subprocess.run(
                 [
                     "/opt/homebrew/bin/ffmpeg", "-y",
                     "-f", "concat", "-safe", "0",
                     "-i", concat_list,
-                    "-c", "copy",
+                    "-c:a", "libmp3lame", "-q:a", "2",
                     output_path,
                 ],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                capture_output=True,
+                text=True,
             )
+            if result.returncode != 0:
+                raise RuntimeError(result.stderr[-500:] if result.stderr else "ffmpeg failed")
 
             # Clean up temp files
             for path in chunk_files:
