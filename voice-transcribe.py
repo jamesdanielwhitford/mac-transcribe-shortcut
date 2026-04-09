@@ -12,6 +12,7 @@ import os
 import subprocess
 import tempfile
 import threading
+import time
 import requests
 from pynput import keyboard
 
@@ -61,15 +62,24 @@ def stop_and_transcribe():
 
 
 def transcribe(audio_path):
+    max_retries = 4
     try:
-        with open(audio_path, "rb") as f:
-            response = requests.post(
-                ENDPOINT,
-                headers={"Authorization": f"Bearer {MISTRAL_API_KEY}"},
-                files={"file": ("audio.wav", f, "audio/wav")},
-                data={"model": MODEL},
-                timeout=60
-            )
+        response = None
+        for attempt in range(max_retries):
+            with open(audio_path, "rb") as f:
+                response = requests.post(
+                    ENDPOINT,
+                    headers={"Authorization": f"Bearer {MISTRAL_API_KEY}"},
+                    files={"file": ("audio.wav", f, "audio/wav")},
+                    data={"model": MODEL},
+                    timeout=60
+                )
+            if response.status_code != 503 or attempt == max_retries - 1:
+                break
+            wait = 2 ** attempt
+            print(f"503 error, retrying in {wait}s (attempt {attempt + 1}/{max_retries})...")
+            notify("Voice Transcribe", f"Server busy, retrying ({attempt + 1}/{max_retries})...")
+            time.sleep(wait)
         response.raise_for_status()
         text = response.json().get("text", "").strip()
         if text:
