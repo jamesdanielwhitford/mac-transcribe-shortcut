@@ -74,10 +74,10 @@ def transcribe(audio_path):
                     data={"model": MODEL},
                     timeout=60
                 )
-            if response.status_code != 503 or attempt == max_retries - 1:
+            if response.status_code not in (429, 503) or attempt == max_retries - 1:
                 break
             wait = 2 ** attempt
-            print(f"503 error, retrying in {wait}s (attempt {attempt + 1}/{max_retries})...")
+            print(f"{response.status_code} error, retrying in {wait}s (attempt {attempt + 1}/{max_retries})...")
             notify("Voice Transcribe", f"Server busy, retrying ({attempt + 1}/{max_retries})...")
             time.sleep(wait)
         response.raise_for_status()
