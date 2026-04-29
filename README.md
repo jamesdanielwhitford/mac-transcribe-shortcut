@@ -23,8 +23,8 @@ Records your microphone and transcribes speech to text using Mistral's Voxtral m
 ### Setup
 
 ```bash
-git clone https://github.com/yourusername/voice-transcribe.git
-cd voice-transcribe
+git clone https://github.com/yourusername/mac-transcribe-shortcut.git
+cd mac-transcribe-shortcut
 chmod +x setup.sh
 ./setup.sh
 ```
