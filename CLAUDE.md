@@ -2,6 +2,10 @@
 
 A macOS background tool that records voice on a global hotkey and transcribes it to clipboard using Mistral's Voxtral model.
 
+## Status
+
+See `.claude/sessions/overview.md` for session history and current status.
+
 ## Shortcut
 
 **Ctrl+Option+C** - toggle recording on/off
@@ -92,7 +96,7 @@ Default voice is `en-US-Wavenet-F` (female WaveNet). Change `VOICE_NAME` in `tts
 
 ### Output
 
-MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and opened in QuickTime Player. Use QuickTime's controls to pause or stop, or close the window to cancel.
+MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and opened in QuickTime Player via AppleScript, which is verified by checking QuickTime's document count actually increased. If that isn't confirmed, playback falls back to `afplay` instead (no visible window, but audio still plays) and a notification says so.
 
 ### Managing the TTS agent
 
