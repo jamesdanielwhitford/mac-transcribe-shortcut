@@ -13,6 +13,7 @@ Requires:
 """
 
 import os
+import re
 import subprocess
 import threading
 import datetime
@@ -32,20 +33,77 @@ os.makedirs(DESKTOP, exist_ok=True)
 # at 4800 characters to stay safely under, splitting on sentence boundaries where possible.
 CHUNK_SIZE = 4800
 
+EXTRACT_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extract_url_text.py")
+UV_BIN = "/opt/homebrew/bin/uv"
+EXTRACT_TIMEOUT_SECS = 45  # requests-only fetches finish in ~1-3s; Playwright
+                           # fallback (JS-rendered pages) can take 10-25s per
+                           # research_lib's own PLAYWRIGHT_NAV_TIMEOUT (25s) plus
+                           # settle/poll waits — 45s gives real Playwright runs
+                           # headroom without hanging the hotkey indefinitely.
+
 tts_lock = threading.Lock()
 pressed_keys = set()
 
 
 def notify(title, message):
+    def esc(s):
+        return s.replace("\\", "\\\\").replace('"', '\\"')
     subprocess.run([
         "osascript", "-e",
-        f'display notification "{message}" with title "{title}"'
+        f'display notification "{esc(message)}" with title "{esc(title)}"'
     ])
 
 
 def get_clipboard():
     result = subprocess.run("pbpaste", capture_output=True)
     return result.stdout.decode("utf-8", errors="replace").strip()
+
+
+_URL_ONLY_RE = re.compile(
+    r'^(?:https?://|www\.)\S+$',
+    re.IGNORECASE,
+)
+
+
+def is_url_only(text):
+    """True if the entire (already-stripped) clipboard string is one URL and
+    nothing else — no surrounding prose, no trailing sentence. Requires a
+    scheme (http/https) or a leading 'www.' so we don't false-positive on
+    ordinary text that merely contains a bare domain-looking token (e.g.
+    'check out foo.com' or a sentence ending in an abbreviation like 'etc.')."""
+    if " " in text or "\n" in text or "\t" in text:
+        return False
+    return bool(_URL_ONLY_RE.match(text))
+
+
+def extract_article_text(url):
+    """Run extract_url_text.py via `uv run` and return (title, text).
+    Raises RuntimeError with a human-readable message on any failure
+    (non-zero exit, timeout, unparsable output)."""
+    try:
+        result = subprocess.run(
+            [UV_BIN, "run", EXTRACT_SCRIPT, url],
+            capture_output=True, text=True,
+            timeout=EXTRACT_TIMEOUT_SECS,
+            cwd=os.path.dirname(EXTRACT_SCRIPT),
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"timed out fetching article after {EXTRACT_TIMEOUT_SECS}s")
+
+    if result.returncode != 0:
+        err = (result.stderr or "").strip().splitlines()
+        detail = err[-1] if err else f"exit code {result.returncode}"
+        raise RuntimeError(f"couldn't extract article: {detail}")
+
+    stdout = result.stdout
+    if "\n\n" not in stdout:
+        raise RuntimeError("unexpected output from extractor")
+    title, text = stdout.split("\n\n", 1)
+    title = title.strip()
+    text = text.strip()
+    if not text:
+        raise RuntimeError("extractor returned no article text")
+    return title, text
 
 
 def split_text(text, chunk_size):
@@ -129,13 +187,20 @@ def get_quicktime_doc_count():
 
 def play_audio(path):
     """
-    Open path in QuickTime Player, falling back to afplay if QuickTime
-    can't be confirmed to have opened it. `open -a` only confirms Launch
-    Services handed off the request — it returns success even when
-    QuickTime itself later rejects the file, which is the failure mode
-    this guards against. AppleScript's "open" command runs synchronously
-    against the app itself, so we can verify success by checking the
-    document count actually increased.
+    Open path in QuickTime Player. `open -a` only confirms Launch Services
+    handed off the request — it returns success even when QuickTime itself
+    later rejects the file, which is the failure mode this guards against.
+    AppleScript's "open" command runs synchronously against the app itself,
+    so we can verify success by checking the document count actually
+    increased.
+
+    Deliberately no afplay (or any other headless-player) fallback here: it
+    plays audio with no window and no pause/stop control, and an earlier
+    version of this function fell back to it silently — the user could end
+    up with audio playing on their laptop they had no way to stop short of
+    finding and killing the process. If QuickTime can't be confirmed to
+    have opened the file, stop and say so; the MP3 is already saved to
+    Desktop and can be opened manually.
     """
     before = get_quicktime_doc_count()
     posix_path = path.replace('"', '\\"')
@@ -146,8 +211,8 @@ def play_audio(path):
     if result.returncode == 0 and after > before:
         return
 
-    notify("TTS Clipboard", "QuickTime couldn't open it, playing directly instead")
-    subprocess.Popen(["afplay", path])
+    notify("TTS Clipboard", "QuickTime couldn't open the file — it's saved on your Desktop")
+    print(f"QuickTime failed to open {path}, not falling back to afplay")
 
 
 def speak_clipboard():
@@ -156,6 +221,18 @@ def speak_clipboard():
         notify("TTS Clipboard", "Clipboard is empty.")
         print("Clipboard is empty.")
         return
+
+    if is_url_only(text):
+        notify("TTS Clipboard", "Fetching article...")
+        print(f"Fetching article: {text}")
+        try:
+            title, article_text = extract_article_text(text)
+            text = f"{title}. {article_text}"
+            print(f"Extracted \"{title}\" ({len(article_text)} chars)")
+        except Exception as e:
+            notify("TTS Clipboard", f"Couldn't fetch article ({e}) — speaking URL instead")
+            print(f"Article extraction failed: {e}")
+            # text stays as the original URL string; fall through to speak it literally
 
     preview = text[:60] + ("..." if len(text) > 60 else "")
     notify("TTS Clipboard", f"Speaking: {preview}")

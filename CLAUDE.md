@@ -66,10 +66,21 @@ Reads clipboard text aloud using Google Cloud TTS (WaveNet/Neural2) and saves an
 ### Key files
 
 - `tts-clipboard.py` - TTS script, reads `GOOGLE_APPLICATION_CREDENTIALS` from environment
+- `extract_url_text.py` - standalone `uv run` script that fetches a URL and prints `title\n\n{article text}` to stdout, used for the URL-to-article feature below
 - `com.tts-clipboard.plist.template` - launch agent template (populated by setup-tts.sh)
 - `setup-tts.sh` - one-command setup for the TTS feature
 - `~/Library/LaunchAgents/com.tts-clipboard.plist` - the live launch agent (not in repo)
 - `~/tts-clipboard.log` - runtime log
+
+### URL-to-article behavior
+
+If the clipboard contents are *only* a URL (starts with `http://`, `https://`, or `www.`, with no other surrounding text/whitespace), pressing Ctrl+Option+V fetches the page and speaks the extracted article text instead of reading the raw URL aloud. Detection is in `is_url_only()`; extraction runs `extract_url_text.py` as a subprocess via `uv run` (absolute path `/opt/homebrew/bin/uv`, since the LaunchAgent inherits launchd's bare PATH with no Homebrew dir — same reason ffmpeg is invoked by absolute path elsewhere in this file).
+
+`extract_url_text.py` reuses the fetch/extract pipeline from `~/.claude/skills/better-research/scripts/research_lib.py` (requests-first, Playwright-fallback, readability extraction) rather than a second scraper, so this feature depends on that skill being present.
+
+On any extraction failure (non-zero exit, timeout after 45s, or unparsable output), the tool falls back to speaking the literal URL string via the normal TTS pipeline, with a notification explaining the fallback. It does not hard-stop.
+
+If a future `uv` cache change or `better-research` skill update ever breaks the Playwright fallback again (pages that need JS rendering silently falling back to speaking the raw URL), the fix is `/opt/homebrew/bin/uv run --with playwright playwright install chromium`, run from **this repo's directory** — it must resolve the same `uv` environment `extract_url_text.py` itself uses, which is not the same environment/cache key as running the same command from inside `~/.claude/skills/better-research`.
 
 ### Voice
 
@@ -96,7 +107,7 @@ Default voice is `en-US-Wavenet-F` (female WaveNet). Change `VOICE_NAME` in `tts
 
 ### Output
 
-MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and opened in QuickTime Player via AppleScript, which is verified by checking QuickTime's document count actually increased. If that isn't confirmed, playback falls back to `afplay` instead (no visible window, but audio still plays) and a notification says so.
+MP3 files are saved to `~/Desktop/TTS Recordings/tts_YYYY-MM-DD_HH-MM-SS.mp3` and opened in QuickTime Player via AppleScript, which is verified by checking QuickTime's document count actually increased. If that isn't confirmed, the tool notifies and stops — it deliberately does NOT fall back to a headless player like `afplay`, since that would play audio with no pause/stop control. The MP3 is always saved to Desktop regardless, so it can be opened manually if this happens.
 
 ### Managing the TTS agent
 
